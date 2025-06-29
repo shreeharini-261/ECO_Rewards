@@ -25,13 +25,13 @@ EcoRewards is a gamified waste management system that incentivizes users to subm
 ## 📸 Screenshots
 
 ### 🎮 User Dashboard
-![User Dashboard](https://github.com/your-repo/images/user-dashboard.png)
+![User Dashboard](https://github.com/shreeharini-261/ECO_Rewards/blob/main/images/user-dashboard.png)
 
 ### 🧾 Admin Dashboard
-![Admin Dashboard](https://github.com/your-repo/images/admin-dashboard.png)
+![Admin Dashboard](https://github.com/shreeharini-261/ECO_Rewards/blob/main/images/Screenshot%20from%202025-06-29%2020-18-26.png)
 
 ### 🎁 Rewards Management
-![Rewards Panel](https://github.com/your-repo/images/rewards-panel.png)
+![Rewards Panel](https://github.com/shreeharini-261/ECO_Rewards/blob/main/images/Screenshot%20from%202025-06-29%2020-18-31.png)
 
 ---
 
