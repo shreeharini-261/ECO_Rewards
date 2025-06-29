@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Welcome, {{ session['username'] }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <span class="points-badge">
+            <i class="bi bi-coin me-1"></i> {{ points.points_available }} EcoPoints
+        </span>
+    </div>
+</div>
+
+<!-- Points Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Total Earned</h5>
+                <p class="card-text display-6">{{ points.total_points_earned }} Points</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Available</h5>
+                <p class="card-text display-6">{{ points.points_available }} Points</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Redeemed</h5>
+                <p class="card-text display-6">{{ points.points_redeemed }} Points</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Waste Submission Form -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5>Submit New Waste</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('submit_waste') }}" method="POST">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Waste Type</label>
+                    <select name="waste_type" class="form-select" required>
+                        <option value="plastic">Plastic</option>
+                        <option value="e-waste">E-Waste</option>
+                        <option value="organic">Organic</option>
+                        <option value="paper">Paper</option>
+                        <option value="metal">Metal</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Quantity (kg)</label>
+                    <input type="number" step="0.1" min="0.1" name="quantity" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Location</label>
+                    <input type="text" name="location" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">Submit Waste</button>
+        </form>
+    </div>
+</div>
+
+<!-- Submission History -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5>Your Submission History</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Points</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in submissions %}
+                    <tr>
+                        <td>{{ sub.submission_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ sub.waste_type|title }}</td>
+                        <td>{{ sub.quantity }} kg</td>
+                        <td>{{ sub.points_earned or '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if sub.status == 'approved' else 'warning' if sub.status == 'pending' else 'danger' }}">
+                                {{ sub.status_text }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Rewards Section -->
+<div class="card mb-4" id="rewardsSection">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Available Rewards</h5>
+    </div>
+    <div class="card-body">
+        {% if rewards %}
+        <div class="row">
+            {% for reward in rewards %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ reward.name }}</h5>
+                        <p class="card-text">{{ reward.description }}</p>
+                        <p class="text-muted">{{ reward.points_required }} Points</p>
+                        {% if reward.stock is not none %}
+                        <p class="text-muted">{{ reward.stock }} remaining</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <form method="POST" action="{{ url_for('redeem_reward') }}">
+                            <input type="hidden" name="reward_id" value="{{ reward.id }}">
+                            <button type="submit" class="btn btn-success w-100" 
+                                {% if points.points_available < reward.points_required or (reward.stock is not none and reward.stock <= 0) %}disabled{% endif %}>
+                                Redeem Now
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-muted">No rewards available at the moment.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Submissions -->
+<div class="card mb-4" id="submissionsSection">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Recent Waste Submissions</h5>
+    </div>
+    <div class="card-body">
+        {% if submissions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Quantity (kg)</th>
+                        <th>Points</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in submissions %}
+                    <tr>
+                        <td>{{ sub.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ sub.waste_type|title }}</td>
+                        <td>{{ sub.quantity }}</td>
+                        <td>{{ sub.points_earned or 'Pending' }}</td>
+                        <td>
+                            {% if sub.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                            {% elif sub.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted">No waste submissions yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Redemptions -->
+<div class="card" id="redemptionsSection">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Recent Reward Redemptions</h5>
+    </div>
+    <div class="card-body">
+        {% if redemptions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reward</th>
+                        <th>Points</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for redemption in redemptions %}
+                    <tr>
+                        <td>{{ redemption.redemption_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ redemption.reward_name }}</td>
+                        <td>{{ redemption.points_spent }}</td>
+                        <td>
+                            {% if redemption.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                            {% elif redemption.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted">No reward redemptions yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

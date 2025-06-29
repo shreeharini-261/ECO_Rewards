@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Point Rules{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Point Rules</h1>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Waste Type</th>
+                <th>Points per kg</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rule in rules %}
+            <tr>
+                <td>{{ rule.waste_type|title }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('update_point_rule') }}" class="row g-2">
+                        <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                        <div class="col">
+                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" name="points" value="{{ rule.points_per_kg }}" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-success">Update</button>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    {% if rule.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('update_point_rule') }}" class="d-inline">
+                        <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                        <input type="hidden" name="points" value="{{ rule.points_per_kg }}">
+                        <input type="hidden" name="is_active" value="{{ not rule.is_active }}">
+                        <button type="submit" class="btn btn-sm {% if rule.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if rule.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

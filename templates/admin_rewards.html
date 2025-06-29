@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Rewards Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Rewards Management</h1>
+</div>
+
+<!-- Add Reward Form -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Add New Reward</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_reward') }}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Reward Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="points_required" class="form-label">Points Required</label>
+                    <input type="number" class="form-control" id="points_required" name="points_required" min="1" required>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label for="stock" class="form-label">Stock Quantity (leave empty for unlimited)</label>
+                    <input type="number" class="form-control" id="stock" name="stock" min="0">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success">Add Reward</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rewards List -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Available Rewards</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Points</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reward in rewards %}
+                    <tr>
+                        <td>{{ reward.name }}</td>
+                        <td>{{ reward.description }}</td>
+                        <td>{{ reward.points_required }}</td>
+                        <td>
+                            {% if reward.stock is none %}
+                            Unlimited
+                            {% else %}
+                            {{ reward.stock }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reward.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('toggle_reward', reward_id=reward.id) }}" class="btn btn-sm {% if reward.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                {% if reward.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No rewards found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

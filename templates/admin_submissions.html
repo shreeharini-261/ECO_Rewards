@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Waste Submissions - {{ status|title }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin_submissions', status='pending') }}" 
+               class="btn btn-sm {% if status == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+               Pending
+            </a>
+            <a href="{{ url_for('admin_submissions', status='approved') }}" 
+               class="btn btn-sm {% if status == 'approved' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+               Approved
+            </a>
+            <a href="{{ url_for('admin_submissions', status='rejected') }}" 
+               class="btn btn-sm {% if status == 'rejected' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+               Rejected
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Points</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if submissions %}
+                {% for submission in submissions %}
+                <tr>
+                    <td>{{ submission.id }}</td>
+                    <td>{{ submission.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ submission.username }}</td>
+                    <td>{{ submission.waste_type|title }}</td>
+                    <td>{{ submission.quantity }} kg</td>
+                    <td>{{ submission.points_earned or '-' }}</td>
+                    <td>
+                        <span class="badge bg-{% if submission.status == 'approved' %}success{% elif submission.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                            {{ submission.status|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if submission.status == 'pending' %}
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('approve_submission', submission_id=submission.id) }}" class="btn btn-success">Approve</a>
+                            <a href="{{ url_for('reject_submission', submission_id=submission.id) }}" class="btn btn-danger">Reject</a>
+                        </div>
+                        {% elif submission.status == 'approved' and not submission.collected_date %}
+                        <a href="{{ url_for('mark_collected', submission_id=submission.id) }}" class="btn btn-sm btn-primary">Mark Collected</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">No {{ status }} submissions found</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
